@@ -96,6 +96,7 @@ class SystemdContainerServiceUnit():
         self.container_name = container_name
         self.desc = desc
         self.ports = ports
+        self.unitfile = SystemdUnitParser()
 
         if env:
             self.env = env
@@ -103,7 +104,9 @@ class SystemdContainerServiceUnit():
             self.env = {}
 
     def write(self):
-        path = "%s/%s.service" % (SYSTEMD_UNITS, self.container_name)
+        path = "%s/%s.service" % (systemd_units, self.container_name)
+        # uncomment for local testing
+        #path = "%s/%s.service" % ('/tmp', self.container_name)
 
         docker_run = "/usr/bin/docker run --name=%s" % self.container_name
         for key in self.env:
@@ -112,8 +115,29 @@ class SystemdContainerServiceUnit():
         for mapping in self.ports:
             docker_run += " -p %s" % mapping
         docker_run += " %s" % self.image_name
+        docker_stop = "/usr/bin/docker stop -t 5 {0} ; /usr/bin/docker rm -f {0}".format(self.container_name)
 
+        # create the unit directives
+        self.unitfile["Unit"] = {}
+        self.unitfile["Unit"]["Description"] = self.desc
+        self.unitfile["Unit"]["Requires"] = "docker.service"
+        self.unitfile["Unit"]["After"] = "docker.service"
+
+        # create the service directives
+        self.unitfile["Service"] = {}
+        self.unitfile["Service"]["Restart"] = "always"
+        self.unitfile["Service"]["ExecStart"] = docker_run
+        self.unitfile["Service"]["ExecStop"] = docker_stop
+
+        # create the install directives
+        self.unitfile["Install"] = {}
+        self.unitfile["Install"]["WantedBy"] = "multi-user.target"
+
+        # write this out to a file
         with open(path, "w") as f:
+            self.unitfile.write(f)
+
+        """with open(path, "w") as f:
             f.write("[Unit]\n")
             f.write("Description=%s\n" % self.desc)
             f.write("Requires=docker.service\n")
@@ -123,7 +147,7 @@ class SystemdContainerServiceUnit():
             f.write("ExecStart=%s\n" % docker_run)
             f.write("ExecStop=/usr/bin/docker stop -t 5 {0} ; /usr/bin/docker rm -f {0}\n\n".format(self.container_name))
             f.write("[Install]\n")
-            f.write("WantedBy=multi-user.target\n")
+            f.write("WantedBy=multi-user.target\n")"""
 
 
 """
