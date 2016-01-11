@@ -104,7 +104,7 @@ class SystemdContainerServiceUnit():
             self.env = {}
 
     def write(self):
-        path = "%s/%s.service" % (systemd_units, self.container_name)
+        path = "%s/%s.service" % (SYSTEMD_UNITS, self.container_name)
 
         docker_run = "/usr/bin/docker run --name=%s" % self.container_name
         for key in self.env:
