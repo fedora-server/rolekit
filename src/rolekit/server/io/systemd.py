@@ -137,19 +137,6 @@ class SystemdContainerServiceUnit():
         with open(path, "w") as f:
             self.unitfile.write(f)
 
-        """with open(path, "w") as f:
-            f.write("[Unit]\n")
-            f.write("Description=%s\n" % self.desc)
-            f.write("Requires=docker.service\n")
-            f.write("After=docker.service\n\n")
-            f.write("[Service]\n")
-            f.write("Restart=always\n")
-            f.write("ExecStart=%s\n" % docker_run)
-            f.write("ExecStop=/usr/bin/docker stop -t 5 {0} ; /usr/bin/docker rm -f {0}\n\n".format(self.container_name))
-            f.write("[Install]\n")
-            f.write("WantedBy=multi-user.target\n")"""
-
-
 """
 Sections of this parser are adapted from:
 
